@@ -1,0 +1,59 @@
+table 'Run Log'
+	lineageTag: 7b2f4678-8966-42ec-9237-8d21c35acf0e
+
+	/// Counts all sync attempts in the current filter context.
+	measure 'Total Runs' = COALESCE(COUNTROWS('Run Log'), 0)
+		formatString: #,0
+		lineageTag: 60ceedc5-012c-4882-afed-e778a9d54552
+
+	/// Counts attempts with the normalized Failed status.
+	measure 'Failed Runs' = CALCULATE([Total Runs], KEEPFILTERS('Run Log'[Status] = "Failed"))
+		formatString: #,0
+		lineageTag: 8843e2e1-e732-4647-a46a-ca61b75ce350
+
+	/// Divides failed runs by all runs in the same filter context. Returns blank if there were no runs.
+	measure 'Failure Rate' = DIVIDE([Failed Runs], [Total Runs])
+		formatString: 0.0%
+		lineageTag: f8cfa52d-b695-4fbe-a1ac-98b2e17aaf28
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 46153eb1-aec6-4909-bb4a-d6486d2842df
+		summarizeBy: none
+		sourceColumn: Run ID
+
+	column 'Run Date'
+		dataType: dateTime
+		formatString: dd MMM yyyy
+		lineageTag: b4916945-5372-4949-8acb-a759e1615677
+		summarizeBy: none
+		sourceColumn: Run Date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Route ID'
+		dataType: string
+		isHidden
+		lineageTag: e9a1eac2-1ee2-45ac-90b7-ab3af3bf96e1
+		summarizeBy: none
+		sourceColumn: Route ID
+
+	column Status
+		dataType: string
+		lineageTag: c5f4062c-4d62-4e26-8f9c-55af57775ce6
+		summarizeBy: none
+		sourceColumn: Status
+
+	partition 'Run Log' = m
+		mode: import
+		source =
+				let
+				    CsvBytes = Binary.Decompress(Binary.FromText("jdvdiq43cgXg81zFvgAPSKpfHYbtGRgIIdjMBZhtBwZCEjL2/acT27hUVdpLR2OmF9+DSu+r7tVb/d0v//npr99+893H/3z7w88/ffPdf/3y80//9/98//MPP//yj3/67m//+qcxxvxmjaV/GvtPH//5b999+80/fvny5aeffvzpx98TKyc+ff975NPvGcqZ7//2+fOf//ztn7/9PcHQkQdHoWPQ8QdnI2cO5MyJnVlm+5d//uu//IEcY/303//z5VNl0mA/d4zkTFmO5kRx7MFx6GzkrIGdNZGzFnTowWHoCHS07mEjGZQcSsdsP//t+8ahkTPZoZkT2aH14BB0GDry4Ch0wmRX+6KS50Tj7Jj52MUfPxWJB5J4YolXzhSHoMMPjkBHoWMPjkNnn4n6ZMvIierIzJnsyEp72JymQg8SQ0ngivTBMeg4dDZ2dCBHJ3J0PTgEHYbOMdlPX375R3ea6jHd7lRQy4kieU40zkaODeTYLM5ffvj7f/yB2IJIGCy1L6pxTtTFmORMcRQ69uB4zPRHqW0k+cCST7QiX9ChB4ehk2ZbH2zXnGgcy5niOHQ2dvZAzp5pD5ujdK8HiaDEaEVbHhyFjkGnzDa9qHsDZI4BkDmOwbanzhwrZ4pDOVGcY6yXc3QOgZLmxL///0x+/7I9LMchEgbL3Vs6Yxvj/i2dsY9x95bO2MYuDj04DB2Bjj44FjO/nqOxPc7Yxi7MxswaaDkrDbY+1WvlRONQzhSHoSMPjkLHoOMPzkYOjbSB9RCdNLFEC0pltsdbSvyACEQUjY2OwfanAXnOFGfnRHZ4YIcncnhB5xjr7RBlhlKYrbQvaqxicnlRYxmT9kWNVezibOzEMtY7sYr1TqxivznH99IZe9gFYYjIw2KOwbY/jE5Jg60PtnhONNLOmezoQI5O7OiCDkGHHxyBjkLHHhyHzk572JyjNrBkE0m20IrsmG1/9BjnTHEkJ4qjD45Bx6GzseMDObGIafuuxiKmv72HjUT5c4rEUJKcaByFjkHHH5yNnFjFemdP7OwFnTTZ+mRvzonGkbSLX+ppuhVK9iB5zhRnA2eNAZ01JnDWWNChB4ehI9DRB8eg43UPi3TMtj0V1hw5k6U5cyI7cz04BB2Gjjw4Cp0wW+ve1RUbmfXv6oqdzLp3dcVG1juxkdntNF2xlV0kghLjFcVWdnEUOvbgOHTSbOs7RCMnqkMzZ7JDCzr04HDaxXqaLhIo6YNkcEUOnY0dHsjhiRxeDw5Bh6FzTLY/E1hzpjjHZH+tiEXyB2kjSUZOZEcmdmRBJ8zW23c1NjO/vKuxm3n7rsZmdnGsOEeJXLGWXZCNkFjK/HqUxmLWS7GWXSTCY1OGThpsfbBVc6JxLGeK49DZ2LGBHJvIsfXgUNrFL+fvSpcxZOSBUbgcg44/OBs5PpDjx2DrvzsuXzlQEMqJgnBBymJcoHOMtT9E3R4kh1IY7G7f0ljI9uUtjZVst29pLGS/JuIvZFdsY1eEISJwMfrgGHQcOsdYL4cojQEkGmmw5ammsXKicShnisPQkQdHoWPQ8eIcbymNjZA5EDInXsxcaQvrD6M0CUr8IAlckULnGGx7GtD0nCnOzonsrIGdNZGzFnToweGcid/hKLSwjyfi13ewMBoz7XlAoYn9linL8ZwozsZOaGIXJ/SwixN62N0h6DB05MFR6KTJ1seaPO1hd5eUaOfPyRIPJPHMierwgg5Bhx8cgY5Cxx4ch85GjgzsyKy7mCVZUDpm2x8JwjlTHMmJ4uiDY9Bx6Gzs6EBOKGKzvZZPoYjNy7V8ClVsttf/KRSxOS+naahid0mhZHBF/uBs5IQqdnFsYscWdNJs65NtnBONIzlTHIWOpT1sT1NzKG0k+cAr8okcX9ChB4ehI9DRB8eg49A5JtufCfuY7a/lMEt75s/J0l4PEuVMcRg68uAodMJsV6mPFArZvFzLp1DJZnstn0Mdm+31fw517OZwKGQ3h2KiPUo5FLK7JFBSuCJ7cBw6abblweY5cqI6c+ZMduaCDj04DB2BjqY97I5SngYlh9LGK1oDOWsiZ60Hh6DD0Dlm2x4IvDRnimM5URx/cI7Ztkcp00ASTSzRQiuKtay9mc+xll1u5nMsZu3NfI617OLYg+PQ2ciJpezmxFrWO7GU0eU0ZXqQynTjbxOY02Drg82aEw1iOVOW4zkRv9Mxb4zIQIhMtBhZDw5Bh6Ejaffac1QUSgYlf1jRRo4O5Ogx2/400JUzxaGcKA4/OAIdhY49OMds+3M0FrL2cj7HQna5nM+xkrWX8zkWsotDDw5DR6CjD45Bx6GzseMDOX5Mtr0GxZ5m271DTjlznKPO+cvH+eZShOPX/+z69Y+3r3+8o4/fOZDntEdO5Cntiae0F3QIOlx3rJEESgqlY6r9GbA9Z4qzcyLujYwBERkTIDJWTqTFyKAHh6ETxtrexpdYvi638SXWr8ttfIn16yJtLMUC1v59gcT61Tuxfl0dgg5DRx4chY6dic/V8Zw4TwOZOwfiYSNrpN37eAGPR3pNAKz1dYDyl8+PZ/Tx8vWPVzShVWZYd2KVKeadWBs5NLBDEzm0oHMM9PIHTELHXPM/LApJ/nJhNCcaxHKmLMehs7HDAzmxY7VX7iV2rMuVe4kdq71yL7FhXRx5cDRm+iMz1qyL5A/SzpnjMYg1q0dkYkQWGpukwaZDQDh/OR0CIjlwLkO//vGGPt6//vE7bVc+I3UUoAxJZ87kIenKibwZSg8OQ0egow+OQcehcwy2f/dt5Ex2bOZEduyY7O3INIISQ0keVqTQCbNtr9ZLbFSXq/USO1V7tV5io+qd2KhuTmxUF4egw8U5X9FYquxyZMZedWHsYTkOl5MGWx/sPXKiOnvmTHb2gg49OAwdgY4+OAYdT3tY67nsDSUdA0g6JliRjvXgEHQYOsds2wNBh+ZMcSwniuMPzkbOHMiZx2QvR6nOBaUw2/ZqvcaOdblar7FltVfrNXasi2MPjkNnIyc2rZsTy1bvxLZ1cejBOWbbnqa60mzrs700JxrJcqY4Dp2NHRrIoYkcWg8OQYehIw+OQsfSHtbTVMkfpDLd+MOv8kDL4WOw/dHDK2fycphyojj84Ah0FDr24Dh0wljbC/Yay9f1gr3GAtZesNdYvy4S5UTjMHQEOvrgGHQcOhs7OpCjabL1ydaVE41DaRfrxVBVhpI8SJozxTHo+IOzkWMDOTaxYws6BJ0y2bM3qAlEtG5gYY7B9keCec4UaedEdnxgxydyfEGHHhyGzh+zXe0dew2NbF3u2GvoZKu9Y6+hkd2cHRO/HaXngxAq2YUJhezChEJ2XU6oZDeHoSMPjkInDba+PdtzonF2ziTHxgCOjQkdGyttYT1HbRCU+EESuCKFjj04Dp2NnDmwMydy5oLOMdn2QLDJOVOcY7Lt33za1AfJcib+SGrT85cLsjGyBlpOaGOrvV1voY2ty+16C31stbfrLbSx3xLxt8sWitgdUYgYXIzHxOXnUQtl7CKFKnaRaOIV0YJOGmx9qolzonEkZ4qj0LEHx6GzkcMDOzzTLjbnKC8o0YPEaEUs0NEHx6Dj0Dlm2x8IMnImOzJzIjuyinP8GGJCEDnG2h+iIg/LUSiFwbZX6y1UsXW5Wm+hjK32ar2FKnZxQhW7OqGM3RyCDj84Ah2FzjHZ21GqDqU02/pg28iJ6tjMmezYgg49OAwdgY4+OAYdh87Gjo+0i81R6hNJvh4kQityhs4x2/5McM2Z4lhOFMcfnI2cPZCzJ3b2gk6Y7OVqvcVCdrlab7GStZf4LRay9o8FLBayq+PQ2cDxWMgujsdK1joeC9nFoQeHoZMm+7k6mvawuyTqw/LnFMmhtHOiOnMgZ07kzPXgEHQ4J2Jv8CkPiELE4GL8wdl1C7O0BpLWMdj2SPC1cqY4lBPF4QdHoKPQsQfHoRNmy6U+eqxjl6v1HgtZe7XeYx3j/hz1WMiuEkNJcqI4+uAYdBw6Gzs8kMNptvWx5pUTjUM5UxyGjqQ9bM9RVigZlPxhRTtn4i95XAZCZGJEFlqMEHT4wRHoKHSOsfangRyDbf9KyWXnz8mSDizpzJns6IIOPTgMnTDb9rK9x0J2uWzvsZK1l+091rGLs7ETC1nvxDoml6M0FrKrRFBitCKTB6dM93hRLQ22PtjmOdEgO2fyYnwgxyd2fEGHoMNpA9tz1AVKCiV7WJFDZyNnD+zsiZy9oHPMtj8QNudMcSQniqMPzjHb/ijdDqUNpT0GWNGObay9h79jG7vcw9+xj7X38HdsYxdHHhyFjkHHH5yNnNjFtD9K95xYmgtKabafq8M50TiSM8VR6NiD49DZyFkDO2siZy3oUNrD7jTdi6EkUNKHFRl0HDrHbPszgUbOZIdmTmSH1oND0GHoSHGOf9TYdAy2PUp3LGTt5fwdC9nlcv6Olay9nL9jIeudWMhuTqxkF4egww+OQEehYw+OQ+eYbHsNakuabfcCycyZLMnKieLQg8PQEejog2PQcehs7OhAjk7k6Kp72EgEJYbSMdv+6FHNmeJYThTHH5yNHBs5EX9Dtm1ixBZEwljbm/k71rHLzfwdC9nlZv6Ohewi2YPkOVOcjZzYyW5ObGVe6uOOheyC0APCaDEuZ6I+06450TiWM8XxtIHNOeq7SOc31D0Qsydazl54OZugw9CRB0ehY9DxB2d/3ZljjK87H4ljsv1fOH2kjunW8+AjQTlRJM6JxhHoKHTswXHohNl21/LniG2sv5b/kZk5k53YxS4OPTgcM905+pERKGmR4ov6ETC4HIfIxstZAzkrDbY+2GvlRONQzhSHcyJ8L/34sjwgChFLu1cO0Y+MP0gbSTTQ2GhihxZ0CDr84Ah0FDrHbPvTgDxnirNzIjt8TPZ2jvJEEi8oEV4RM3T+mC2N9kUNVYzG5UUNZYxG+6KGKnZzNnZCFbs4oYhdnFDE7g7FTH+Ohip2k+RBUriiNNv6bIvnROPsnMmODuToxI4u6BB0+MER6Gjaw+Y0VXuQHEobrcgGdmwixxZ0jtn2Z4JxzhRHcqI4+uAYdBw6x2Rvp6mPu/S/", BinaryEncoding.Base64), Compression.Deflate),
+				    Source = Csv.Document(CsvBytes, [Delimiter=",", Columns=4, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Normalized = Table.TransformColumns(Headers, {{"Run ID", Text.Trim, type text}, {"Route ID", each Text.Upper(Text.Trim(_)), type text}, {"Status", each Text.Proper(Text.Trim(_), "en-US"), type text}}),
+				    Clean = Table.TransformColumns(Normalized, {{"Run Date", each Date.FromText(_, [Format="yyyy-MM-dd", Culture="en-US"]), type date}})
+				in
+				    Clean
+

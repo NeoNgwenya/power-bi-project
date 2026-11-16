@@ -1,0 +1,28 @@
+table Routes
+	lineageTag: abb09fd1-d8eb-4e79-b71e-6d9394ae8e95
+
+	column 'Route ID'
+		dataType: string
+		isHidden
+		isKey
+		lineageTag: 0519a16e-b8f3-4617-bee3-fa6e16fe662b
+		summarizeBy: none
+		sourceColumn: Route ID
+
+	column Route
+		dataType: string
+		lineageTag: 5df05d7f-32f0-44c4-8949-6e16bc23f9af
+		summarizeBy: none
+		sourceColumn: Route
+
+	partition Routes = m
+		mode: import
+		source =
+				let
+				    CsvBytes = Binary.Decompress(Binary.FromText("C8ovLUlV8HTRCQIxuAKCXHQCivJTSpNLgGxnIDszOTMvncs5NFjHubS4JD83tYgLAA==", BinaryEncoding.Base64), Compression.Deflate),
+				    Source = Csv.Document(CsvBytes, [Delimiter=",", Columns=2, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Clean = Table.TransformColumns(Headers, {{"Route ID", each Text.Upper(Text.Trim(_)), type text}, {"Route", Text.Trim, type text}})
+				in
+				    Clean
+

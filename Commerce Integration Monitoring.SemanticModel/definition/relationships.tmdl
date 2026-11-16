@@ -1,0 +1,4 @@
+relationship 77eea7ab-1a35-4149-900a-17cf918400ab
+	fromColumn: 'Run Log'.'Route ID'
+	toColumn: Routes.'Route ID'
+
